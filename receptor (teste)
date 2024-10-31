@@ -1,0 +1,85 @@
+#define DECODE_SONY
+#include <IRremote.hpp>
+
+enum RobotStates {
+  standby,
+  ready,
+  fight,
+  teste,
+};
+
+RobotStates robotState = standby;
+
+unsigned long blinkTimer;
+bool ledOn;
+decode_results results;
+
+void setup() {
+  pinMode(4, OUTPUT);
+  Serial.begin(9600);
+  IrReceiver.begin(11);
+  delay(1000);
+}
+
+void loop() {
+  IrReceive();
+  Blink();
+  Fight();
+  Stop();
+}
+
+void IrReceive() {
+  if (IrReceiver.decode()) {
+    Serial.println(IrReceiver.decodedIRData.command, HEX);
+
+    switch (IrReceiver.decodedIRData.command) {
+      case 0x0:
+        if (robotState == standby) {
+          Serial.println("ENTROU!");
+          robotState = ready;
+        }
+        break;
+      case 0x1:
+       if (robotState == ready) {
+          Serial.println("COMBATE!!");
+          robotState = fight;
+        }
+        break;
+      case 0x2:
+        Serial.println("Standby!!");
+        robotState = standby;
+        break;
+      default:
+        Serial.println("Comando desconhecido");
+        break;
+    }
+    IrReceiver.resume();
+  }
+}
+
+void Blink() {
+  if (robotState == ready) {
+    Serial.println("Entrou blink");
+    if (millis() / 100 > blinkTimer) {
+      ledOn = !ledOn;
+      digitalWrite(4, ledOn ? HIGH : LOW);
+      blinkTimer = (millis() / 100) + 1;
+    }
+  }
+}
+
+void Fight() {
+  if (robotState == fight) {
+    digitalWrite(13, HIGH);
+    Serial.println("LED LIGADO - MODO COMBATE");
+  }
+}
+
+void Stop() {
+  if (robotState == standby) {
+    digitalWrite(13, LOW);
+    Serial.println("LED DESLIGADO - MODO STANDBY");
+    }
+}
+
+
