@@ -21,9 +21,10 @@ bool ledOn;
 decode_results results;
  
 void setup() {
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
+  pinMode(2, OUTPUT); // botao 1
+  pinMode(3, OUTPUT); // botao 2
+  pinMode(4, OUTPUT); // botao 3
+  pinMode(5, OUTPUT); // indica logica
   Serial.begin(9600);
   IrReceiver.begin(8);
   delay(1000);
@@ -88,9 +89,12 @@ void Fight() {
     digitalWrite(3, HIGH);
     if (logicaa == teste1) {
       Serial.println("Robo funcionando na primeira lógica");
+      digitalWrite(5, HIGH);
+
     }
     if (logicaa == teste2) {
       Serial.println("Robo funcionando na segunda lógica");
+      digitalWrite(5, LOW);
     }
   }
 }
