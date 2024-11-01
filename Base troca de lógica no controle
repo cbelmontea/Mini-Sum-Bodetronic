@@ -1,0 +1,103 @@
+#define DECODE_SONY
+#include <IRremote.hpp>
+ 
+enum RobotStates {
+  standby,
+  led1,
+  led2,
+  led3,
+};
+ 
+enum Logica {
+  teste1,
+  teste2,
+};
+ 
+RobotStates robotState = standby;
+Logica logicaa;
+ 
+unsigned long blinkTimer;
+bool ledOn;
+decode_results results;
+ 
+void setup() {
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  Serial.begin(9600);
+  IrReceiver.begin(8);
+  delay(1000);
+}
+ 
+void loop() {
+  IrReceive();
+  Blink();
+  Fight();
+  Stop();
+}
+ 
+void IrReceive() {
+  if (IrReceiver.decode()) {
+    Serial.println(IrReceiver.decodedIRData.command, HEX);
+ 
+    switch (IrReceiver.decodedIRData.command) {
+      case 0x0: // botão 1
+        if (robotState == standby) {
+          Serial.println("ENTROU!");
+          robotState = led1;
+        }
+        break;
+      case 0x1: // botão 2
+        if (robotState == led1) {
+          Serial.println("COMBATE!!");
+          robotState = led2;
+        }
+        break;
+      case 0x2: // botão 3
+        Serial.println("Standby!!");
+        robotState = led3;
+        break;
+      case 0x8: // botão 9
+        Serial.println("LOGICA 1!!");
+        logicaa = teste1;
+        break;
+      case 0x9: // botão 0
+        Serial.println("LOGICA 2");
+        logicaa = teste2;
+        break;
+      default:
+        Serial.println("Comando desconhecido");
+        break;
+    }
+    IrReceiver.resume();
+  }
+}
+ 
+void Blink() {
+  if (robotState == led1) {
+    if (millis() - blinkTimer > 500) { // Pisca a cada 500ms
+      ledOn = !ledOn;
+      digitalWrite(2, ledOn ? HIGH : LOW);
+      blinkTimer = millis();
+    }
+  }
+}
+ 
+void Fight() {
+  if (robotState == led2) {
+    digitalWrite(3, HIGH);
+    if (logicaa == teste1) {
+      Serial.println("Robo funcionando na primeira lógica");
+    }
+    if (logicaa == teste2) {
+      Serial.println("Robo funcionando na segunda lógica");
+    }
+  }
+}
+ 
+void Stop() {
+  if (robotState == led3) {
+    digitalWrite(4, HIGH);
+    Serial.println("LED DESLIGADO - MODO STANDBY");
+  }
+}
