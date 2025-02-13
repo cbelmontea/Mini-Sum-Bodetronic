@@ -1,3 +1,4 @@
+#include <IRremote.hpp>
 int sensorValue = 0;
 int cmValue = 0;
 int dir = 1;  //define direção do sensor ou do motor que será testado (1-frente, 2-direita, 3-esquerda)
@@ -15,6 +16,20 @@ const int PINO_IN4 = 12;
 const int PWMA = 33;
 const int PWMB = 13;
 #define STBY 27
+// infravermelho do controle
+const int Ir1 = 4; // infra da led
+const int Ir2 = 16; // entrada infra
+
+// estados infravermelho
+enum RobotStates {
+    standby,
+    ready,
+    fight,
+    teste,
+};
+
+RobotStates robotState = standby;
+//
 
 void setup() {
   Serial.begin(115200);
@@ -29,7 +44,38 @@ void setup() {
   pinMode(sensorPinF, INPUT);
   pinMode(STBY, OUTPUT);
   digitalWrite(STBY, HIGH);
+  pinMode(Ir1, OUTPUT);
+  IrReceiver.begin(Ir2);
 }
+
+void IrReceive() {
+    if (IrReceiver.decode()) {
+      Serial.println(IrReceiver.decodedIRData.command, HEX);
+  
+      switch (IrReceiver.decodedIRData.command) {
+        case 0x0:
+          if (robotState == standby) {
+            Serial.println("ENTROU!");
+            robotState = ready;
+          }
+          break;
+        case 0x1:
+         if (robotState == ready) {
+            Serial.println("COMBATE!!");
+            robotState = fight;
+          }
+          break;
+        case 0x2:
+          Serial.println("Standby!!");
+          robotState = standby;
+          break;
+        default:
+          Serial.println("Comando desconhecido");
+          break;
+      }
+      IrReceiver.resume();
+    }
+  }
 
 void sensorDis(int dir) {
   int sensorPin;
@@ -82,4 +128,5 @@ void loop() {
   } */
   sensorDis(dir); //testa resposta do sensor na direção desejada
   mover(dir); //move na direção desejada
+  IrReceive(); // testa o infravermelho
 }
